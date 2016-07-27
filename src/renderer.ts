@@ -20,20 +20,22 @@ module TableRender {
     export interface IRowData {
         values:ICellMap;
         className:string;
-        cache:ICache;
+        cache:ICache<string>;
         render(renderer:Renderer):string;
     }
 
     export interface ICellData {
         value:string;
         className:string;
-        cache:ICache;
+        cache:ICache<string>;
         render():string;
     }
 
-    export interface ICache {
-        value:string;
+    export interface ICache<T> {
         reset:() => void;
+        setValue:(value:T) => void;
+        getValue:() => T;
+        isEmpty:() => boolean;
     }
 
     export interface ICellMap {
@@ -47,7 +49,7 @@ module TableRender {
     export class RowData implements IRowData {
         values:ICellMap = {};
         className:string;
-        cache:ICache = new Cache();
+        cache:ICache<string> = new Cache<string>();
 
         constructor(row:IRowData) {
             this.values = Object.keys(row.values).reduce((values, key) => {
@@ -61,34 +63,37 @@ module TableRender {
             if (renderer.config.beforeRowRender) {
                 renderer.config.beforeRowRender(renderer, this);
             }
+            if (this.cache.isEmpty()) {
+                let out = Object.keys(this.values)
+                    .reduce((out, key) => {
+                        out[key] = this.values[key].render();
+                        return out;
+                    }, <IRowRenderOutput>{});
 
-            let out = Object.keys(this.values)
-                .reduce((out, key) => {
-                    out[key] = this.values[key].render();
-                    return out;
-                }, <IRowRenderOutput>{});
+                let rowOut = renderer.config.columns.map((column) => {
+                    let cell = out[column.key];
+                    if (cell) return cell;
+                }).join('');
 
-            let rowOut = renderer.config.columns.map((column) => {
-                let cell = out[column.key];
-                if (cell) return cell;
-            }).join('');
+                if (rowOut) {
+                    rowOut = addClassName('<tr>', this.className) + `${rowOut}</tr>`;
+                }
 
-            if (rowOut) {
-                rowOut = addClassName('<tr>', this.className) + `${rowOut}</tr>`;
+                if (renderer.config.afterRowRender) {
+                    rowOut = renderer.config.afterRowRender(renderer, rowOut);
+                }
+
+                this.cache.setValue(rowOut);
             }
 
-            if (renderer.config.afterRowRender) {
-                rowOut = renderer.config.afterRowRender(renderer, rowOut);
-            }
-
-            return rowOut;
+            return this.cache.getValue();
         }
     }
 
     class CellData implements ICellData {
         value:string;
         className:string;
-        cache:ICache = new Cache();
+        cache:ICache<string> = new Cache<string>();
 
         constructor(cell:ICellData) {
             this.value = cell.value;
@@ -96,15 +101,31 @@ module TableRender {
         }
 
         render():string {
-            return addClassName('<td>', this.className) + `${this.value}</td>`;
+            if (this.cache.isEmpty()) {
+                let html = addClassName('<td>', this.className) + `${this.value}</td>`;
+                this.cache.setValue(html);
+            }
+            return this.cache.getValue();
         }
     }
 
-    class Cache implements ICache {
-        value:string;
+    class Cache<T> implements ICache<T> {
+        private _value:T;
+
+        setValue(value:T) {
+            this._value = value;
+        }
+
+        getValue() {
+            return this._value;
+        }
+
+        isEmpty() {
+            return !this._value;
+        }
 
         reset() {
-            this.value = '';
+            this._value = null;
         }
     }
 
@@ -196,6 +217,13 @@ module TableRender {
 
         private renderData():string {
             return this.data.map(row => row.render(this)).join('');
+        }
+
+        resetCache():void {
+            this.data.forEach((data) => {
+                data.cache.reset();
+                Object.keys(data.values).forEach((key) => data.values[key].cache.reset());
+            });
         }
     }
 

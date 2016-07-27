@@ -191,5 +191,39 @@ describe('renderer', function () {
             let html = renderer.render();
             expect(html).toBe('<table>replaced html</table>');
         });
+
+    });
+
+    describe('cache', function () {
+        it('should cache row', function () {
+            let render = new Renderer([
+                {values: {a: {value: 'A'}}}
+            ], {
+                columns: [{label: 'a', key: 'a'}]
+            });
+            render.render();
+            expect(render.data[0].cache.getValue()).toBeTruthy();
+        });
+        it('should cache cell', function () {
+            let render = new Renderer([
+                {values: {a: {value: 'A'}}}
+            ], {
+                columns: [{label: 'a', key: 'a'}]
+            });
+            render.render();
+            expect(render.data[0].values.a.cache.getValue()).toBeTruthy();
+        });
+
+        it('should reset cache', function () {
+            let render = new Renderer([
+                {values: {a: {value: 'A'}}}
+            ], {
+                columns: [{label: 'a', key: 'a'}]
+            });
+            render.render();
+            render.resetCache();
+            expect(render.data[0].cache.getValue()).toBeNull();
+            expect(render.data[0].values.a.cache.getValue()).toBeNull();
+        });
     });
 });

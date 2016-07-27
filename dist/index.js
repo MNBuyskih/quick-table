@@ -15,23 +15,26 @@ var TableRender;
             if (renderer.config.beforeRowRender) {
                 renderer.config.beforeRowRender(renderer, this);
             }
-            var out = Object.keys(this.values)
-                .reduce(function (out, key) {
-                out[key] = _this.values[key].render();
-                return out;
-            }, {});
-            var rowOut = renderer.config.columns.map(function (column) {
-                var cell = out[column.key];
-                if (cell)
-                    return cell;
-            }).join('');
-            if (rowOut) {
-                rowOut = addClassName('<tr>', this.className) + (rowOut + "</tr>");
+            if (this.cache.isEmpty()) {
+                var out_1 = Object.keys(this.values)
+                    .reduce(function (out, key) {
+                    out[key] = _this.values[key].render();
+                    return out;
+                }, {});
+                var rowOut = renderer.config.columns.map(function (column) {
+                    var cell = out_1[column.key];
+                    if (cell)
+                        return cell;
+                }).join('');
+                if (rowOut) {
+                    rowOut = addClassName('<tr>', this.className) + (rowOut + "</tr>");
+                }
+                if (renderer.config.afterRowRender) {
+                    rowOut = renderer.config.afterRowRender(renderer, rowOut);
+                }
+                this.cache.setValue(rowOut);
             }
-            if (renderer.config.afterRowRender) {
-                rowOut = renderer.config.afterRowRender(renderer, rowOut);
-            }
-            return rowOut;
+            return this.cache.getValue();
         };
         return RowData;
     }());
@@ -43,15 +46,28 @@ var TableRender;
             this.className = cell.className;
         }
         CellData.prototype.render = function () {
-            return addClassName('<td>', this.className) + (this.value + "</td>");
+            if (this.cache.isEmpty()) {
+                var html = addClassName('<td>', this.className) + (this.value + "</td>");
+                this.cache.setValue(html);
+            }
+            return this.cache.getValue();
         };
         return CellData;
     }());
     var Cache = (function () {
         function Cache() {
         }
+        Cache.prototype.setValue = function (value) {
+            this._value = value;
+        };
+        Cache.prototype.getValue = function () {
+            return this._value;
+        };
+        Cache.prototype.isEmpty = function () {
+            return !this._value;
+        };
         Cache.prototype.reset = function () {
-            this.value = '';
+            this._value = null;
         };
         return Cache;
     }());
@@ -125,6 +141,12 @@ var TableRender;
         Renderer.prototype.renderData = function () {
             var _this = this;
             return this.data.map(function (row) { return row.render(_this); }).join('');
+        };
+        Renderer.prototype.resetCache = function () {
+            this.data.forEach(function (data) {
+                data.cache.reset();
+                Object.keys(data.values).forEach(function (key) { return data.values[key].cache.reset(); });
+            });
         };
         return Renderer;
     }());
