@@ -10,14 +10,17 @@ var TableRender;
             }, {});
             this.className = row.className;
         }
-        RowData.prototype.render = function (columns) {
+        RowData.prototype.render = function (renderer) {
             var _this = this;
+            if (renderer.config.beforeRowRender) {
+                renderer.config.beforeRowRender(renderer, this);
+            }
             var out = Object.keys(this.values)
                 .reduce(function (out, key) {
                 out[key] = _this.values[key].render();
                 return out;
             }, {});
-            var rowOut = columns.map(function (column) {
+            var rowOut = renderer.config.columns.map(function (column) {
                 var cell = out[column.key];
                 if (cell)
                     return cell;
@@ -25,10 +28,14 @@ var TableRender;
             if (rowOut) {
                 rowOut = addClassName('<tr>', this.className) + (rowOut + "</tr>");
             }
+            if (renderer.config.afterRowRender) {
+                rowOut = renderer.config.afterRowRender(renderer, rowOut);
+            }
             return rowOut;
         };
         return RowData;
     }());
+    TableRender.RowData = RowData;
     var CellData = (function () {
         function CellData(cell) {
             this.cache = new Cache();
@@ -53,7 +60,21 @@ var TableRender;
             this.columns = config.columns.map(function (column) { return new Column(column); });
             this.tableClassName = config.tableClassName;
             this.headersClassName = config.headersClassName;
+            this.beforeRender = config.beforeRender;
+            this.afterRender = config.afterRender;
+            this.beforeRowRender = config.beforeRowRender;
+            this.afterRowRender = config.afterRowRender;
         }
+        Config.prototype.beforeRender = function (renderer) {
+        };
+        Config.prototype.afterRender = function (renderer, html) {
+            return null;
+        };
+        Config.prototype.beforeRowRender = function (renderer, row) {
+        };
+        Config.prototype.afterRowRender = function (renderer, html) {
+            return null;
+        };
         return Config;
     }());
     TableRender.Config = Config;
@@ -76,10 +97,17 @@ var TableRender;
             this.config = new Config(config);
         }
         Renderer.prototype.render = function () {
-            return this.renderTable()
+            if (this.config.beforeRender) {
+                this.config.beforeRender(this);
+            }
+            var html = this.renderTable()
                 + this.renderHeader()
                 + this.renderData()
                 + '</table>';
+            if (this.config.afterRender) {
+                html = this.config.afterRender(this, html);
+            }
+            return html;
         };
         Renderer.prototype.renderTable = function () {
             return addClassName('<table>', this.config.tableClassName);
@@ -96,7 +124,7 @@ var TableRender;
         };
         Renderer.prototype.renderData = function () {
             var _this = this;
-            return this.data.map(function (row) { return row.render(_this.config.columns); }).join('');
+            return this.data.map(function (row) { return row.render(_this); }).join('');
         };
         return Renderer;
     }());

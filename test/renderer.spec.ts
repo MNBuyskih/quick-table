@@ -124,4 +124,72 @@ describe('renderer', function () {
 
         expect(render).toBe('<table><tr><th>a</th><th>b</th><th>c</th></tr><tr><td>A</td><td>B</td><td>C</td></tr><tr><td>A</td><td>B</td><td>C</td></tr></table>');
     });
+
+    describe('events', function () {
+        it('should fire before render', function (done) {
+            let renderer = new Renderer([], {
+                columns: [],
+                beforeRender: function (rend) {
+                    expect(renderer).toBe(rend);
+                    done();
+                }
+            });
+            renderer.render();
+        });
+
+        it('should fire after render', function () {
+            let renderer = new Renderer([], {
+                columns: [],
+                afterRender: function (rend, html) {
+                    expect(renderer).toBe(rend);
+                    expect(html).toBe('<table></table>');
+                    return 'replaced html';
+                }
+            });
+            let html = renderer.render();
+            expect(html).toBe('replaced html');
+        });
+
+        it('should fire before row render', function (done) {
+            let renderer = new Renderer([
+                {
+                    values: {
+                        a: {value: "A"},
+                        b: {value: "B"},
+                        c: {value: "C"},
+                    }
+                }
+            ], {
+                columns: [],
+                beforeRowRender: function (rend, data) {
+                    let rowData = TableRender.RowData;
+                    expect(renderer).toBe(rend);
+                    expect(data instanceof rowData).toBeTruthy();
+                    done();
+                }
+            });
+            renderer.render();
+        });
+
+        it('should fire after row render', function () {
+            let renderer = new Renderer([
+                {
+                    values: {
+                        a: {value: "A"},
+                        b: {value: "B"},
+                        c: {value: "C"},
+                    }
+                }
+            ], {
+                columns: [],
+                afterRowRender: function (rend, html) {
+                    expect(renderer).toBe(rend);
+                    expect(html).toBe('');
+                    return 'replaced html';
+                }
+            });
+            let html = renderer.render();
+            expect(html).toBe('<table>replaced html</table>');
+        });
+    });
 });

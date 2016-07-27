@@ -10,13 +10,18 @@ module TableRender {
         columns:IColumns[];
         tableClassName:string;
         headersClassName:string;
+        beforeRender(renderer:Renderer):void;
+        afterRender(renderer:Renderer, html:string):string;
+
+        beforeRowRender(renderer:Renderer, row:IRowData):void;
+        afterRowRender(renderer:Renderer, html:string):string;
     }
 
     export interface IRowData {
         values:ICellMap;
         className:string;
         cache:ICache;
-        render(columns:IColumns[]):string;
+        render(renderer:Renderer):string;
     }
 
     export interface ICellData {
@@ -39,7 +44,7 @@ module TableRender {
         [index:string]:string;
     }
 
-    class RowData implements IRowData {
+    export class RowData implements IRowData {
         values:ICellMap = {};
         className:string;
         cache:ICache = new Cache();
@@ -52,20 +57,28 @@ module TableRender {
             this.className = row.className;
         }
 
-        render(columns:IColumns[]):string {
+        render(renderer:Renderer):string {
+            if (renderer.config.beforeRowRender) {
+                renderer.config.beforeRowRender(renderer, this);
+            }
+
             let out = Object.keys(this.values)
                 .reduce((out, key) => {
                     out[key] = this.values[key].render();
                     return out;
                 }, <IRowRenderOutput>{});
 
-            let rowOut = columns.map((column) => {
+            let rowOut = renderer.config.columns.map((column) => {
                 let cell = out[column.key];
                 if (cell) return cell;
             }).join('');
 
             if (rowOut) {
                 rowOut = addClassName('<tr>', this.className) + `${rowOut}</tr>`;
+            }
+
+            if (renderer.config.afterRowRender) {
+                rowOut = renderer.config.afterRowRender(renderer, rowOut);
             }
 
             return rowOut;
@@ -100,10 +113,28 @@ module TableRender {
         tableClassName:string;
         headersClassName:string;
 
+        beforeRender(renderer:Renderer):void {
+        }
+
+        afterRender(renderer:Renderer, html:string):string {
+            return null;
+        }
+
+        beforeRowRender(renderer:Renderer, row:IRowData):void {
+        }
+
+        afterRowRender(renderer:Renderer, html:string):string {
+            return null;
+        }
+
         constructor(config:IConfig) {
             this.columns = config.columns.map((column) => new Column(column));
             this.tableClassName = config.tableClassName;
             this.headersClassName = config.headersClassName;
+            this.beforeRender = config.beforeRender;
+            this.afterRender = config.afterRender;
+            this.beforeRowRender = config.beforeRowRender;
+            this.afterRowRender = config.afterRowRender;
         }
     }
 
@@ -133,10 +164,19 @@ module TableRender {
         }
 
         render():string {
-            return this.renderTable()
+            if (this.config.beforeRender) {
+                this.config.beforeRender(this);
+            }
+            let html = this.renderTable()
                 + this.renderHeader()
                 + this.renderData()
                 + '</table>';
+
+            if (this.config.afterRender) {
+                html = this.config.afterRender(this, html);
+            }
+
+            return html;
         }
 
         private renderTable():string {
@@ -155,7 +195,7 @@ module TableRender {
         }
 
         private renderData():string {
-            return this.data.map(row => row.render(this.config.columns)).join('');
+            return this.data.map(row => row.render(this)).join('');
         }
     }
 
