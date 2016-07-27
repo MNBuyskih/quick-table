@@ -78,4 +78,50 @@ describe('renderer', function () {
 
         expect(render).toBe('<table><tr><th>a</th></tr><tr class="test"><td>A</td></tr></table>');
     });
+
+    it('should add class to data cell', () => {
+        let renderer = new Renderer([
+            {
+                values: {
+                    a: {
+                        value: 'A',
+                        className: 'test'
+                    }
+                },
+            }
+        ], {
+            columns: [{label: 'a', key: 'a'}],
+        });
+        let render = renderer.render();
+
+        expect(render).toBe('<table><tr><th>a</th></tr><tr><td class="test">A</td></tr></table>');
+    });
+
+    it('should render multiple rows and cols', () => {
+        let renderer = new Renderer([
+            {
+                values: {
+                    a: {value: "A"},
+                    b: {value: "B"},
+                    c: {value: "C"},
+                }
+            },
+            {
+                values: {
+                    a: {value: "A"},
+                    b: {value: "B"},
+                    c: {value: "C"},
+                }
+            }
+        ], {
+            columns: [
+                {label: 'a', key: 'a'},
+                {label: 'b', key: 'b'},
+                {label: 'c', key: 'c'},
+            ]
+        });
+        let render = renderer.render();
+
+        expect(render).toBe('<table><tr><th>a</th><th>b</th><th>c</th></tr><tr><td>A</td><td>B</td><td>C</td></tr><tr><td>A</td><td>B</td><td>C</td></tr></table>');
+    });
 });

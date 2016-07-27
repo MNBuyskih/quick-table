@@ -83,7 +83,7 @@ module TableRender {
         }
 
         render():string {
-            return `<td>${this.value}</td>`;
+            return addClassName('<td>', this.className) + `${this.value}</td>`;
         }
     }
 
@@ -119,8 +119,7 @@ module TableRender {
         }
 
         renderHeader():string {
-            let html = addClassName('<th>', this.className) + this.label + '</th>';
-            return html;
+            return addClassName('<th>', this.className) + this.label + '</th>';
         }
     }
 
@@ -134,11 +133,10 @@ module TableRender {
         }
 
         render():string {
-            let html = this.renderTable()
+            return this.renderTable()
                 + this.renderHeader()
                 + this.renderData()
                 + '</table>';
-            return html;
         }
 
         private renderTable():string {

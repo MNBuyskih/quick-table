@@ -36,7 +36,7 @@ var TableRender;
             this.className = cell.className;
         }
         CellData.prototype.render = function () {
-            return "<td>" + this.value + "</td>";
+            return addClassName('<td>', this.className) + (this.value + "</td>");
         };
         return CellData;
     }());
@@ -65,8 +65,7 @@ var TableRender;
             this.className = column.className;
         }
         Column.prototype.renderHeader = function () {
-            var html = addClassName('<th>', this.className) + this.label + '</th>';
-            return html;
+            return addClassName('<th>', this.className) + this.label + '</th>';
         };
         return Column;
     }());
@@ -77,11 +76,10 @@ var TableRender;
             this.config = new Config(config);
         }
         Renderer.prototype.render = function () {
-            var html = this.renderTable()
+            return this.renderTable()
                 + this.renderHeader()
                 + this.renderData()
                 + '</table>';
-            return html;
         };
         Renderer.prototype.renderTable = function () {
             return addClassName('<table>', this.config.tableClassName);
