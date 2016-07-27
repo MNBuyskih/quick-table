@@ -1,0 +1,20 @@
+{
+  "name": "quick-table",
+  "description": "Quick table renderer and manipulation",
+  "main": "dist/index.js",
+  "authors": [
+    "MNB"
+  ],
+  "license": "ISC",
+  "keywords": [
+    "table"
+  ],
+  "homepage": "",
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests"
+  ]
+}

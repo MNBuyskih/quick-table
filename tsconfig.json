@@ -1,0 +1,12 @@
+{
+  "compilerOptions": {
+    "target": "es5",
+    "sourceMap": true,
+    "outFile": "dist/index.js"
+  },
+  "exclude": [
+    "node_modules",
+    "bower_components",
+    "test"
+  ]
+}

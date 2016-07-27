@@ -1,0 +1,21 @@
+{
+  "name": "quick-table",
+  "version": "1.0.0",
+  "description": "Quick table renderer and manipulation",
+  "main": "dist/index.js",
+  "scripts": {
+    "test": "karma start"
+  },
+  "keywords": [
+    "table"
+  ],
+  "author": "MNB",
+  "license": "ISC",
+  "devDependencies": {
+    "jasmine": "^2.4.1",
+    "karma": "^1.1.2",
+    "karma-chrome-launcher": "^1.0.1",
+    "karma-jasmine": "^1.0.2",
+    "karma-typescript-preprocessor": "^0.2.1"
+  }
+}
