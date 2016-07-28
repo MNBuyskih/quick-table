@@ -9,7 +9,6 @@ var TableRender;
         function Sorting() {
         }
         Sorting.prototype.setSorting = function (column, direction) {
-            if (direction === void 0) { direction = ISortingDirections.ASC; }
             if (column === this.column) {
                 if (this.direction == ISortingDirections.ASC)
                     this.direction = ISortingDirections.DESC;
@@ -166,6 +165,9 @@ var TableRender;
             if (this.config.beforeRender) {
                 this.config.beforeRender(this);
             }
+            if (this.config.sorting) {
+                this.config.sorting(this.data, this.sorting);
+            }
             var html = this.renderTable()
                 + this.renderHeader()
                 + this.renderData()
@@ -174,10 +176,6 @@ var TableRender;
                 html = this.config.afterRender(this, html);
             }
             return html;
-        };
-        Renderer.prototype.sort = function () {
-            if (this.config.sorting)
-                this.config.sorting(this.data, this.sorting);
         };
         Renderer.prototype.renderTable = function () {
             return addClassName('<table>', this.config.tableClassName);
@@ -213,4 +211,4 @@ var TableRender;
         return tag.replace('>', attr + '>');
     }
 })(TableRender || (TableRender = {}));
-//# sourceMappingURL=index.js.map
+//# sourceMappingURL=renderer.js.map

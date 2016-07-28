@@ -2,11 +2,11 @@
   "compilerOptions": {
     "target": "es5",
     "sourceMap": true,
-    "outFile": "dist/index.js"
+    "outDir": "dist"
   },
-  "exclude": [
-    "node_modules",
-    "bower_components",
-    "test"
+  "files": [
+    "src/renderer",
+    "src/adapters/vanilla",
+    "src/adapters/jquery"
   ]
 }

@@ -13,7 +13,7 @@ module TableRender {
     export interface ISorting {
         column:IColumns;
         direction:ISortingDirections;
-        setSorting(column:IColumns, direction:ISortingDirections):void;
+        setSorting(column:IColumns, direction?:ISortingDirections):void;
         is(column:IColumns):boolean;
     }
 
@@ -68,7 +68,7 @@ module TableRender {
         direction:ISortingDirections;
         column:IColumns;
 
-        setSorting(column:IColumns, direction:ISortingDirections = ISortingDirections.ASC):void {
+        setSorting(column:IColumns, direction?:ISortingDirections):void {
             if (column === this.column) {
                 if (this.direction == ISortingDirections.ASC)
                     this.direction = ISortingDirections.DESC;
@@ -255,6 +255,11 @@ module TableRender {
             if (this.config.beforeRender) {
                 this.config.beforeRender(this);
             }
+
+            if (this.config.sorting) {
+                this.config.sorting(this.data, this.sorting);
+            }
+
             let html = this.renderTable()
                 + this.renderHeader()
                 + this.renderData()
@@ -265,10 +270,6 @@ module TableRender {
             }
 
             return html;
-        }
-
-        sort():void {
-            if (this.config.sorting) this.config.sorting(this.data, this.sorting);
         }
 
         private renderTable():string {

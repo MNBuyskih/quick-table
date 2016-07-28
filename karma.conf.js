@@ -31,7 +31,10 @@ module.exports = function(config) {
 
     // list of files / patterns to load in the browser
     files: [
-      'dist/index.js',
+      'dist/renderer.js',
+      'dist/adapters/vanilla.js',
+      'bower_components/jquery/dist/jquery.js',
+      'dist/adapters/jquery.js',
       'test/**/*.spec.ts'
     ],
 

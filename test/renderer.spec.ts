@@ -311,12 +311,10 @@ describe('renderer', function () {
             expect(render).toBe('<table><tr><th><span class="quick-table-sorting">a</span></th><th><span class="quick-table-sorting">b</span></th><th><span class="quick-table-sorting">c</span></th></tr><tr><td>1</td><td>2</td><td>3</td></tr><tr><td>4</td><td>5</td><td>6</td></tr></table>')
 
             renderer.sorting.setSorting(renderer.config.columns[1]);
-            renderer.sort();
             render = renderer.render();
             expect(render).toBe('<table><tr><th><span class="quick-table-sorting">a</span></th><th><span class="quick-table-sorting quick-table-sorting-asc">b</span></th><th><span class="quick-table-sorting">c</span></th></tr><tr><td>1</td><td>2</td><td>3</td></tr><tr><td>4</td><td>5</td><td>6</td></tr></table>')
 
             renderer.sorting.setSorting(renderer.config.columns[1], ISortingDirections.DESC);
-            renderer.sort();
             render = renderer.render();
             expect(render).toBe('<table><tr><th><span class="quick-table-sorting">a</span></th><th><span class="quick-table-sorting quick-table-sorting-desc">b</span></th><th><span class="quick-table-sorting">c</span></th></tr><tr><td>4</td><td>5</td><td>6</td></tr><tr><td>1</td><td>2</td><td>3</td></tr></table>')
         });
