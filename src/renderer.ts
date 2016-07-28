@@ -3,11 +3,29 @@ module TableRender {
         key:string;
         label:string;
         className:string;
-        renderHeader():string;
+        render(renderer:Renderer):string;
+    }
+    export enum ISortingDirections{
+        DESC,
+        ASC
+    }
+
+    export interface ISorting {
+        column:IColumns;
+        direction:ISortingDirections;
+        setSorting(column:IColumns, direction:ISortingDirections):void;
+        is(column:IColumns):boolean;
+    }
+
+    export interface ISortingDefault {
+        column:string,
+        direction:ISortingDirections;
     }
 
     export interface IConfig {
         columns:IColumns[];
+        sortingDefault:ISortingDefault;
+        sorting(data:IRowData[], sorting:ISorting):void;
         tableClassName:string;
         headersClassName:string;
         beforeRender(renderer:Renderer):void;
@@ -44,6 +62,30 @@ module TableRender {
 
     export interface IRowRenderOutput {
         [index:string]:string;
+    }
+
+    export class Sorting implements ISorting {
+        direction:ISortingDirections;
+        column:IColumns;
+
+        setSorting(column:IColumns, direction:ISortingDirections = ISortingDirections.ASC):void {
+            if (column === this.column) {
+                if (this.direction == ISortingDirections.ASC)
+                    this.direction = ISortingDirections.DESC;
+                else {
+                    this.direction = ISortingDirections.ASC;
+                }
+            } else {
+                this.column = column;
+                this.direction = ISortingDirections.ASC;
+            }
+
+            if (direction !== undefined) this.direction = direction;
+        }
+
+        is(column:IColumns):boolean {
+            return this.column === column;
+        }
     }
 
     export class RowData implements IRowData {
@@ -133,6 +175,10 @@ module TableRender {
         columns:IColumns[];
         tableClassName:string;
         headersClassName:string;
+        sortingDefault:ISortingDefault;
+
+        sorting(data:IRowData[], sorting:ISorting):void {
+        }
 
         beforeRender(renderer:Renderer):void {
         }
@@ -156,6 +202,8 @@ module TableRender {
             this.afterRender = config.afterRender;
             this.beforeRowRender = config.beforeRowRender;
             this.afterRowRender = config.afterRowRender;
+            this.sorting = config.sorting;
+            this.sortingDefault = config.sortingDefault;
         }
     }
 
@@ -163,6 +211,7 @@ module TableRender {
         key:string;
         label:string;
         className:string = '';
+        private _classNameBackup:string;
 
         constructor(column:IColumns) {
             this.key = column.key;
@@ -170,7 +219,17 @@ module TableRender {
             this.className = column.className;
         }
 
-        renderHeader():string {
+        render(renderer:Renderer):string {
+            if (this._classNameBackup === undefined) this._classNameBackup = this.className || '';
+            this.className = this._classNameBackup;
+
+            if (renderer.config.sorting) {
+                !this.className ? this.className = '' : this.className += ' ';
+                this.className += 'quick-table-sorting';
+                if (renderer.sorting.is(this)) {
+                    this.className += ' quick-table-sorting-' + (renderer.sorting.direction === ISortingDirections.ASC ? 'asc' : 'desc');
+                }
+            }
             return addClassName('<th>', this.className) + this.label + '</th>';
         }
     }
@@ -179,9 +238,19 @@ module TableRender {
         data:IRowData[];
         config:IConfig;
 
+        sorting:ISorting = new Sorting();
+
         constructor(data:IRowData[], config:IConfig) {
             this.data = data.map((row) => new RowData(row));
             this.config = new Config(config);
+
+            if (this.config.sortingDefault) {
+                this.config.columns.forEach((column) => {
+                    if (column.key == this.config.sortingDefault.column)
+                        this.sorting.column = column;
+                });
+                this.sorting.direction = this.config.sortingDefault.direction;
+            }
         }
 
         render():string {
@@ -200,13 +269,17 @@ module TableRender {
             return html;
         }
 
+        sort():void {
+            if (this.config.sorting) this.config.sorting(this.data, this.sorting);
+        }
+
         private renderTable():string {
             return addClassName('<table>', this.config.tableClassName);
         }
 
         private renderHeader():string {
             let html = this.config.columns.reduce((html, column) => {
-                html += column.renderHeader();
+                html += column.render(this);
                 return html;
             }, '');
             if (html) {

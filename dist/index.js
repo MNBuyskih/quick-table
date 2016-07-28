@@ -1,5 +1,35 @@
 var TableRender;
 (function (TableRender) {
+    (function (ISortingDirections) {
+        ISortingDirections[ISortingDirections["DESC"] = 0] = "DESC";
+        ISortingDirections[ISortingDirections["ASC"] = 1] = "ASC";
+    })(TableRender.ISortingDirections || (TableRender.ISortingDirections = {}));
+    var ISortingDirections = TableRender.ISortingDirections;
+    var Sorting = (function () {
+        function Sorting() {
+        }
+        Sorting.prototype.setSorting = function (column, direction) {
+            if (direction === void 0) { direction = ISortingDirections.ASC; }
+            if (column === this.column) {
+                if (this.direction == ISortingDirections.ASC)
+                    this.direction = ISortingDirections.DESC;
+                else {
+                    this.direction = ISortingDirections.ASC;
+                }
+            }
+            else {
+                this.column = column;
+                this.direction = ISortingDirections.ASC;
+            }
+            if (direction !== undefined)
+                this.direction = direction;
+        };
+        Sorting.prototype.is = function (column) {
+            return this.column === column;
+        };
+        return Sorting;
+    }());
+    TableRender.Sorting = Sorting;
     var RowData = (function () {
         function RowData(row) {
             this.values = {};
@@ -80,7 +110,11 @@ var TableRender;
             this.afterRender = config.afterRender;
             this.beforeRowRender = config.beforeRowRender;
             this.afterRowRender = config.afterRowRender;
+            this.sorting = config.sorting;
+            this.sortingDefault = config.sortingDefault;
         }
+        Config.prototype.sorting = function (data, sorting) {
+        };
         Config.prototype.beforeRender = function (renderer) {
         };
         Config.prototype.afterRender = function (renderer, html) {
@@ -101,7 +135,17 @@ var TableRender;
             this.label = column.label;
             this.className = column.className;
         }
-        Column.prototype.renderHeader = function () {
+        Column.prototype.render = function (renderer) {
+            if (this._classNameBackup === undefined)
+                this._classNameBackup = this.className || '';
+            this.className = this._classNameBackup;
+            if (renderer.config.sorting) {
+                !this.className ? this.className = '' : this.className += ' ';
+                this.className += 'quick-table-sorting';
+                if (renderer.sorting.is(this)) {
+                    this.className += ' quick-table-sorting-' + (renderer.sorting.direction === ISortingDirections.ASC ? 'asc' : 'desc');
+                }
+            }
             return addClassName('<th>', this.className) + this.label + '</th>';
         };
         return Column;
@@ -109,8 +153,17 @@ var TableRender;
     TableRender.Column = Column;
     var Renderer = (function () {
         function Renderer(data, config) {
+            var _this = this;
+            this.sorting = new Sorting();
             this.data = data.map(function (row) { return new RowData(row); });
             this.config = new Config(config);
+            if (this.config.sortingDefault) {
+                this.config.columns.forEach(function (column) {
+                    if (column.key == _this.config.sortingDefault.column)
+                        _this.sorting.column = column;
+                });
+                this.sorting.direction = this.config.sortingDefault.direction;
+            }
         }
         Renderer.prototype.render = function () {
             if (this.config.beforeRender) {
@@ -125,12 +178,17 @@ var TableRender;
             }
             return html;
         };
+        Renderer.prototype.sort = function () {
+            if (this.config.sorting)
+                this.config.sorting(this.data, this.sorting);
+        };
         Renderer.prototype.renderTable = function () {
             return addClassName('<table>', this.config.tableClassName);
         };
         Renderer.prototype.renderHeader = function () {
+            var _this = this;
             var html = this.config.columns.reduce(function (html, column) {
-                html += column.renderHeader();
+                html += column.render(_this);
                 return html;
             }, '');
             if (html) {

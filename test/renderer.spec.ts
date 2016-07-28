@@ -1,4 +1,7 @@
 import Renderer = TableRender.Renderer;
+import ISorting = TableRender.ISorting;
+import IRowData = TableRender.IRowData;
+import ISortingDirections = TableRender.ISortingDirections;
 describe('renderer', function () {
     it('should create new renderer instance', function () {
         let renderer = new Renderer([], {
@@ -204,6 +207,7 @@ describe('renderer', function () {
             render.render();
             expect(render.data[0].cache.getValue()).toBeTruthy();
         });
+
         it('should cache cell', function () {
             let render = new Renderer([
                 {values: {a: {value: 'A'}}}
@@ -224,6 +228,97 @@ describe('renderer', function () {
             render.resetCache();
             expect(render.data[0].cache.getValue()).toBeNull();
             expect(render.data[0].values.a.cache.getValue()).toBeNull();
+        });
+    });
+
+    describe('sorting', function () {
+        it('should add class to header cells', function () {
+            let render = new Renderer([], {
+                columns: [{label: 'a', key: 'a'}],
+                sorting: function (data:IRowData[], sorting:ISorting) {
+
+                }
+            });
+            let html = render.render();
+            expect(html.indexOf('<th class="quick-table-sorting') > -1).toBe(true);
+        });
+
+        it('should add `asc` class to header cells', function () {
+            let render = new Renderer([], {
+                columns: [{label: 'a', key: 'a'}],
+                sortingDefault: {
+                    column: 'a',
+                    direction: ISortingDirections.ASC,
+                },
+                sorting: function (data:IRowData[], sorting:ISorting) {
+
+                }
+            });
+            let html = render.render();
+            expect(html.indexOf('<th class="quick-table-sorting quick-table-sorting-asc') > -1).toBe(true);
+        });
+
+        it('should be reordered', function () {
+            let render = new Renderer([], {
+                columns: [{label: 'a', key: 'a'}],
+                sorting: function (data:IRowData[], sorting:ISorting) {
+
+                }
+            });
+            let html = render.render();
+            expect(html.indexOf('<th class="quick-table-sorting"') > -1).toBe(true);
+
+            render.sorting.setSorting(render.config.columns[0], ISortingDirections.DESC);
+            html = render.render();
+            expect(html.indexOf('<th class="quick-table-sorting quick-table-sorting-desc') > -1).toBe(true);
+        });
+
+        it('should reorder', function () {
+            let renderer = new Renderer([
+                {
+                    values: {
+                        a: {value: "1"},
+                        b: {value: "2"},
+                        c: {value: "3"},
+                    }
+                },
+                {
+                    values: {
+                        a: {value: "4"},
+                        b: {value: "5"},
+                        c: {value: "6"},
+                    }
+                }
+            ], {
+                columns: [
+                    {label: 'a', key: 'a'},
+                    {label: 'b', key: 'b'},
+                    {label: 'c', key: 'c'},
+                ],
+                sorting: function (data:IRowData[], sorting:ISorting) {
+                    data.sort((a, b) => {
+                        if (!sorting.column) return 0;
+                        if (sorting.direction === ISortingDirections.ASC) {
+                            return a.values[sorting.column.key].value - b.values[sorting.column.key].value;
+                        } else {
+                            return b.values[sorting.column.key].value - a.values[sorting.column.key].value;
+                        }
+                    });
+                }
+            });
+            let render = renderer.render();
+
+            expect(render).toBe('<table><tr><th class="quick-table-sorting">a</th><th class="quick-table-sorting">b</th><th class="quick-table-sorting">c</th></tr><tr><td>1</td><td>2</td><td>3</td></tr><tr><td>4</td><td>5</td><td>6</td></tr></table>')
+
+            renderer.sorting.setSorting(renderer.config.columns[1]);
+            renderer.sort();
+            render = renderer.render();
+            expect(render).toBe('<table><tr><th class="quick-table-sorting">a</th><th class="quick-table-sorting quick-table-sorting-asc">b</th><th class="quick-table-sorting">c</th></tr><tr><td>1</td><td>2</td><td>3</td></tr><tr><td>4</td><td>5</td><td>6</td></tr></table>')
+
+            renderer.sorting.setSorting(renderer.config.columns[1], ISortingDirections.DESC);
+            renderer.sort();
+            render = renderer.render();
+            expect(render).toBe('<table><tr><th class="quick-table-sorting">a</th><th class="quick-table-sorting quick-table-sorting-desc">b</th><th class="quick-table-sorting">c</th></tr><tr><td>4</td><td>5</td><td>6</td></tr><tr><td>1</td><td>2</td><td>3</td></tr></table>')
         });
     });
 });
