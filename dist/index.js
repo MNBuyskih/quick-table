@@ -136,17 +136,14 @@ var TableRender;
             this.className = column.className;
         }
         Column.prototype.render = function (renderer) {
-            if (this._classNameBackup === undefined)
-                this._classNameBackup = this.className || '';
-            this.className = this._classNameBackup;
+            var orderClassName = '';
             if (renderer.config.sorting) {
-                !this.className ? this.className = '' : this.className += ' ';
-                this.className += 'quick-table-sorting';
+                orderClassName += 'quick-table-sorting';
                 if (renderer.sorting.is(this)) {
-                    this.className += ' quick-table-sorting-' + (renderer.sorting.direction === ISortingDirections.ASC ? 'asc' : 'desc');
+                    orderClassName += ' quick-table-sorting-' + (renderer.sorting.direction === ISortingDirections.ASC ? 'asc' : 'desc');
                 }
             }
-            return addClassName('<th>', this.className) + this.label + '</th>';
+            return addClassName('<th>', this.className) + addClassName('<span>', orderClassName) + this.label + '</span></th>';
         };
         return Column;
     }());

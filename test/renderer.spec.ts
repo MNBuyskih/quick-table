@@ -12,7 +12,7 @@ describe('renderer', function () {
 
         var render = renderer.render();
         expect(typeof render).toBe('string');
-        expect(render).toBe('<table><tr><th>a</th></tr></table>');
+        expect(render).toBe('<table><tr><th><span>a</span></th></tr></table>');
     });
 
     it('should add class name to table', function () {
@@ -32,7 +32,7 @@ describe('renderer', function () {
         });
         let render = renderer.render();
 
-        expect(render).toBe('<table><tr class="test"><th>a</th></tr></table>');
+        expect(render).toBe('<table><tr class="test"><th><span>a</span></th></tr></table>');
     });
 
     it('should add class to header cell', () => {
@@ -44,7 +44,7 @@ describe('renderer', function () {
         });
         let render = renderer.render();
 
-        expect(render).toBe('<table><tr><th class="test">a</th></tr></table>');
+        expect(render).toBe('<table><tr><th class="test"><span>a</span></th></tr></table>');
     });
 
     it('should generate data', () => {
@@ -61,7 +61,7 @@ describe('renderer', function () {
         });
         let render = renderer.render();
 
-        expect(render).toBe('<table><tr><th>a</th></tr><tr><td>A</td></tr></table>');
+        expect(render).toBe('<table><tr><th><span>a</span></th></tr><tr><td>A</td></tr></table>');
     });
 
     it('should add class to data row', () => {
@@ -79,7 +79,7 @@ describe('renderer', function () {
         });
         let render = renderer.render();
 
-        expect(render).toBe('<table><tr><th>a</th></tr><tr class="test"><td>A</td></tr></table>');
+        expect(render).toBe('<table><tr><th><span>a</span></th></tr><tr class="test"><td>A</td></tr></table>');
     });
 
     it('should add class to data cell', () => {
@@ -97,7 +97,7 @@ describe('renderer', function () {
         });
         let render = renderer.render();
 
-        expect(render).toBe('<table><tr><th>a</th></tr><tr><td class="test">A</td></tr></table>');
+        expect(render).toBe('<table><tr><th><span>a</span></th></tr><tr><td class="test">A</td></tr></table>');
     });
 
     it('should render multiple rows and cols', () => {
@@ -125,7 +125,7 @@ describe('renderer', function () {
         });
         let render = renderer.render();
 
-        expect(render).toBe('<table><tr><th>a</th><th>b</th><th>c</th></tr><tr><td>A</td><td>B</td><td>C</td></tr><tr><td>A</td><td>B</td><td>C</td></tr></table>');
+        expect(render).toBe('<table><tr><th><span>a</span></th><th><span>b</span></th><th><span>c</span></th></tr><tr><td>A</td><td>B</td><td>C</td></tr><tr><td>A</td><td>B</td><td>C</td></tr></table>');
     });
 
     describe('events', function () {
@@ -240,7 +240,7 @@ describe('renderer', function () {
                 }
             });
             let html = render.render();
-            expect(html.indexOf('<th class="quick-table-sorting') > -1).toBe(true);
+            expect(html.indexOf('<th><span class="quick-table-sorting') > -1).toBe(true);
         });
 
         it('should add `asc` class to header cells', function () {
@@ -255,7 +255,7 @@ describe('renderer', function () {
                 }
             });
             let html = render.render();
-            expect(html.indexOf('<th class="quick-table-sorting quick-table-sorting-asc') > -1).toBe(true);
+            expect(html.indexOf('<th><span class="quick-table-sorting quick-table-sorting-asc">') > -1).toBe(true);
         });
 
         it('should be reordered', function () {
@@ -266,11 +266,11 @@ describe('renderer', function () {
                 }
             });
             let html = render.render();
-            expect(html.indexOf('<th class="quick-table-sorting"') > -1).toBe(true);
+            expect(html.indexOf('<th><span class="quick-table-sorting">') > -1).toBe(true);
 
             render.sorting.setSorting(render.config.columns[0], ISortingDirections.DESC);
             html = render.render();
-            expect(html.indexOf('<th class="quick-table-sorting quick-table-sorting-desc') > -1).toBe(true);
+            expect(html.indexOf('<th><span class="quick-table-sorting quick-table-sorting-desc">') > -1).toBe(true);
         });
 
         it('should reorder', function () {
@@ -308,17 +308,17 @@ describe('renderer', function () {
             });
             let render = renderer.render();
 
-            expect(render).toBe('<table><tr><th class="quick-table-sorting">a</th><th class="quick-table-sorting">b</th><th class="quick-table-sorting">c</th></tr><tr><td>1</td><td>2</td><td>3</td></tr><tr><td>4</td><td>5</td><td>6</td></tr></table>')
+            expect(render).toBe('<table><tr><th><span class="quick-table-sorting">a</span></th><th><span class="quick-table-sorting">b</span></th><th><span class="quick-table-sorting">c</span></th></tr><tr><td>1</td><td>2</td><td>3</td></tr><tr><td>4</td><td>5</td><td>6</td></tr></table>')
 
             renderer.sorting.setSorting(renderer.config.columns[1]);
             renderer.sort();
             render = renderer.render();
-            expect(render).toBe('<table><tr><th class="quick-table-sorting">a</th><th class="quick-table-sorting quick-table-sorting-asc">b</th><th class="quick-table-sorting">c</th></tr><tr><td>1</td><td>2</td><td>3</td></tr><tr><td>4</td><td>5</td><td>6</td></tr></table>')
+            expect(render).toBe('<table><tr><th><span class="quick-table-sorting">a</span></th><th><span class="quick-table-sorting quick-table-sorting-asc">b</span></th><th><span class="quick-table-sorting">c</span></th></tr><tr><td>1</td><td>2</td><td>3</td></tr><tr><td>4</td><td>5</td><td>6</td></tr></table>')
 
             renderer.sorting.setSorting(renderer.config.columns[1], ISortingDirections.DESC);
             renderer.sort();
             render = renderer.render();
-            expect(render).toBe('<table><tr><th class="quick-table-sorting">a</th><th class="quick-table-sorting quick-table-sorting-desc">b</th><th class="quick-table-sorting">c</th></tr><tr><td>4</td><td>5</td><td>6</td></tr><tr><td>1</td><td>2</td><td>3</td></tr></table>')
+            expect(render).toBe('<table><tr><th><span class="quick-table-sorting">a</span></th><th><span class="quick-table-sorting quick-table-sorting-desc">b</span></th><th><span class="quick-table-sorting">c</span></th></tr><tr><td>4</td><td>5</td><td>6</td></tr><tr><td>1</td><td>2</td><td>3</td></tr></table>')
         });
     });
 });
